@@ -7,11 +7,12 @@ y <- x%*%beta + array(rep(rnorm(n), 1), dim=c(n, 1))
 
 par(mfrow=c(2,2)) 
 
-###############################################
+################################################
 # Centralize
-###############################################
+################################################
 x <- x - apply(x, 2, mean)
 y <- y - mean(y)
+alpha <- 0.05
 
 ################################################
 # Method 1: Use Var and Cov to resolve
@@ -30,6 +31,10 @@ beta_hat2 <- solve(t(x2)%*%x2)%*%(t(x2)%*%y)
 residual2 <- y - x2%*%beta_hat2
 eps_var2 <- var(residual2)
 plot(residual2, main=paste('method2 \n(residual var = ',eps_var2, ')'))
+# Caculate confident interface of coeffient beta(incluing beta0)
+v_diag <- diag(solve(t(x2)%*%x2))*sum(residual2^2)/(n-varnum-1)
+tconstant <- qt(1-alpha/2, n-varnum-1)
+confint2 <- cbind(beta_hat2 - sqrt(v_diag)*tconstant, beta_hat2 + sqrt(v_diag)*tconstant)
 
 #################################################
 # Method 3: Use R's lm function to do regression
@@ -37,7 +42,15 @@ plot(residual2, main=paste('method2 \n(residual var = ',eps_var2, ')'))
 lm.fit <- lm(y~x)
 summary(lm.fit)
 coefficients(lm.fit)
-confint(lm.fit, level=0.95)
+confint(lm.fit, level=(1-alpha))
 fitted(lm.fit)
 plot(residuals(lm.fit), main=paste('method3 \n(residual var = ',var(residuals(lm.fit)), ')'))
 #plot(lm.fit)
+
+#################################################
+#
+#################################################
+library(MASS)
+lm.ridge <- lm.ridge(y~x)
+plot(lm.ridge)
+select(lm.ridge)
