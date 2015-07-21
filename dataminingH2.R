@@ -48,9 +48,15 @@ plot(residuals(lm.fit), main=paste('method3 \n(residual var = ',var(residuals(lm
 #plot(lm.fit)
 
 #################################################
-#
+# Ridge regression: alpha=0
 #################################################
-library(MASS)
-lm.ridge <- lm.ridge(y~x)
-plot(lm.ridge)
-select(lm.ridge)
+for (l in seq(from=0, to=200, by=20)){
+  ridge.fit <- glmnet(x, y, family="gaussian", alpha=0)
+  plot(ridge.fit, xvar = "lambda")
+  summary(ridge.fit)
+  # make predictions
+  predictions <- predict(ridge.fit, x, type="link")
+  # summarize accuracy
+  rmse <- mean((y - predictions)^2)
+  print(rmse)
+}
